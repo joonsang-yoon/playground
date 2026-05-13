@@ -1,0 +1,14 @@
+{
+  "module": "RISCVDivider",
+  "params": {
+    "dataWidth": 64,
+    "numXPRs": 32,
+    "implementation": "area_0"
+  },
+  "constraints": {
+    "clockName": "clock",
+    "clockPeriodNs": 1.0
+  },
+  "frontierDir": "prefix-topology-library/pareto_frontier_topologies",
+  "outputDir": "generated"
+}

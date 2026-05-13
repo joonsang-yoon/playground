@@ -1,0 +1,13 @@
+{
+  "module": "RecFNToRecFN",
+  "params": {
+    "inExpWidth": 8,
+    "inSigWidth": 24,
+    "outExpWidth": 8,
+    "outSigWidth": 24
+  },
+  "constraints": {
+    "clockPeriodNs": 1.0
+  },
+  "outputDir": "generated"
+}

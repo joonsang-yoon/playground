@@ -1,0 +1,12 @@
+{
+  "module": "ALU",
+  "params": {
+    "dataWidth": 32,
+    "implementation": "area_0"
+  },
+  "constraints": {
+    "clockPeriodNs": 1.0
+  },
+  "frontierDir": "prefix-topology-library/pareto_frontier_topologies",
+  "outputDir": "generated"
+}

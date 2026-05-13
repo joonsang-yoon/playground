@@ -1,0 +1,7 @@
+{
+  "module": "PrefixAbsDiff",
+  "width": 4,
+  "implementation": "behavioral",
+  "frontierDir": "prefix-topology-library/pareto_frontier_topologies",
+  "outputDir": "generated"
+}

@@ -1,0 +1,141 @@
+package build
+
+import mill._
+import mill.scalalib._
+import mill.scalalib.TestModule.ScalaTest
+import mill.scalalib.scalafmt.ScalafmtModule
+
+object Versions {
+  val scala213 = "2.13.16"
+  val chisel = "7.5.0"
+  val osLib = "0.10.7"
+  val ujson = "3.3.1"
+  val scalaTest = "3.2.19"
+  val scalaParallelCollections = "1.0.4"
+  val sourcecode = "0.3.1"
+  val mainargs = "0.5.0"
+  val json4sJackson = "4.0.5"
+}
+
+trait BaseScalaModule extends ScalaModule {
+  protected def repoRoot = moduleDir / os.up
+
+  override def scalaVersion = Versions.scala213
+
+  override def scalacOptions = Seq(
+    "-deprecation",
+    "-feature",
+    "-unchecked",
+    "-language:reflectiveCalls",
+    "-Xcheckinit"
+  )
+
+  override def mvnDeps = Seq(
+    mvn"org.chipsalliance::chisel:${Versions.chisel}",
+    mvn"com.lihaoyi::os-lib:${Versions.osLib}",
+    mvn"com.lihaoyi::ujson:${Versions.ujson}",
+    mvn"org.scala-lang:scala-reflect:${Versions.scala213}"
+  )
+
+  override def scalacPluginMvnDeps = Seq(
+    mvn"org.chipsalliance:::chisel-plugin:${Versions.chisel}"
+  )
+}
+
+trait CommonModule extends BaseScalaModule with ScalafmtModule {
+
+  trait Tests extends ScalaTests with ScalaTest with ScalafmtModule {
+    override def scalaTestVersion = Versions.scalaTest
+
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.scala-lang.modules::scala-parallel-collections:${Versions.scalaParallelCollections}"
+    )
+  }
+}
+
+trait ExternalModule extends BaseScalaModule
+
+object rocketChipMacros extends ExternalModule {
+  override def sources = Task.Sources(repoRoot / "rocket-chip" / "macros" / "src" / "main" / "scala")
+}
+
+object rocketChipCde extends ExternalModule {
+  override def sources = Task.Sources(repoRoot / "rocket-chip" / "dependencies" / "cde" / "cde" / "src")
+}
+
+object rocketChipHardfloat extends ExternalModule {
+  override def sources =
+    Task.Sources(repoRoot / "rocket-chip" / "dependencies" / "hardfloat" / "hardfloat" / "src" / "main" / "scala")
+}
+
+object rocketChipDiplomacy extends ExternalModule {
+  override def moduleDeps = Seq(rocketChipCde)
+  override def sources = Task.Sources(repoRoot / "rocket-chip" / "dependencies" / "diplomacy" / "diplomacy" / "src")
+
+  override def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"com.lihaoyi::sourcecode:${Versions.sourcecode}"
+  )
+}
+
+object rocketChip extends ExternalModule {
+  override def moduleDeps = Seq(rocketChipMacros, rocketChipCde, rocketChipDiplomacy, rocketChipHardfloat)
+  override def sources = Task.Sources(repoRoot / "rocket-chip" / "src" / "main" / "scala")
+  override def resources = Task.Sources(repoRoot / "rocket-chip" / "src" / "main" / "resources")
+
+  override def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"com.lihaoyi::mainargs:${Versions.mainargs}",
+    mvn"org.json4s::json4s-jackson:${Versions.json4sJackson}",
+    mvn"com.lihaoyi::sourcecode:${Versions.sourcecode}"
+  )
+}
+
+object prefixTopologyLibrary extends CommonModule {
+  override def mainClass = Some("prefix.topology.library.Main")
+
+  override def sources = Task.Sources(repoRoot / "prefix-topology-library" / "src")
+  override def resources = Task.Sources(repoRoot / "prefix-topology-library" / "scripts")
+
+  object test extends Tests {
+    override def moduleDeps = Seq(prefixTopologyLibrary)
+    override def sources = Task.Sources(repoRoot / "prefix-topology-library" / "test" / "src")
+  }
+}
+
+object arithPrimitives extends CommonModule {
+  override def moduleDeps = Seq(prefixTopologyLibrary)
+  override def sources = Task.Sources(repoRoot / "arith-primitives" / "src")
+}
+
+object hardInt extends CommonModule {
+  override def moduleDeps = Seq(arithPrimitives, prefixTopologyLibrary, rocketChip)
+  override def sources = Task.Sources(repoRoot / "hard-int" / "src")
+
+  object test extends Tests {
+    override def moduleDeps = Seq(hardInt)
+    override def sources = Task.Sources(repoRoot / "hard-int" / "test" / "src")
+    override def resources = Task.Sources(repoRoot / "hard-int" / "test" / "resources")
+  }
+}
+
+object hardFloat extends CommonModule {
+  override def moduleDeps = Seq(arithPrimitives, prefixTopologyLibrary)
+  override def sources = Task.Sources(repoRoot / "hard-float" / "src")
+
+  object test extends Tests {
+    override def moduleDeps = Seq(hardFloat)
+    override def sources = Task.Sources(repoRoot / "hard-float" / "test" / "src")
+    override def resources = Task.Sources(repoRoot / "hard-float" / "test" / "resources")
+  }
+}
+
+object playground extends CommonModule {
+  override def mainClass = Some("playground.Main")
+
+  override def moduleDeps = Seq(prefixTopologyLibrary, hardInt, hardFloat)
+  override def sources = Task.Sources(repoRoot / "src")
+
+  object test extends Tests {
+    override def moduleDeps = Seq(playground)
+    override def sources = Task.Sources(repoRoot / "test" / "src")
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "module": "RoundAnyRawFNToRecFN",
+  "params": {
+    "inExpWidth": 8,
+    "inSigWidth": 26,
+    "outExpWidth": 8,
+    "outSigWidth": 24,
+    "options": 0
+  },
+  "constraints": {
+    "clockPeriodNs": 1.0
+  },
+  "outputDir": "generated"
+}

@@ -1,0 +1,12 @@
+{
+  "module": "RecFNToIN",
+  "params": {
+    "expWidth": 8,
+    "sigWidth": 24,
+    "intWidth": 32
+  },
+  "constraints": {
+    "clockPeriodNs": 1.0
+  },
+  "outputDir": "generated"
+}
